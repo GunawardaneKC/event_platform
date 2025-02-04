@@ -19,7 +19,7 @@ const Footer = () => {
             height={38}
           />
         </Link>
-          <h3 className=' mt-5'>Alex Dunn Tours isn't just a company; it's a culmination of Sri Lankan adventure woven from over 14 years of passion, expertise, and countless shared smiles. We weren't born in boardrooms, but on winding jungle trails, sun-drenched beaches, and bustling city streets.</h3>
+          <h3 className=' mt-5'>TicketHub.LK is your go-to platform for purchasing tickets to the best musical concerts and live events. With a simple, secure, and fast booking system, we make sure you never miss out on your favorite performances. Explore and grab your tickets now!</h3>
         </div>
 
         <div className={styles.section3}>
