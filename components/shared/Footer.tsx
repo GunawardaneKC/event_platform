@@ -13,7 +13,7 @@ const Footer = () => {
         <div className={styles.section2} >
         <Link href='/'>
           <Image 
-            src="/assets/images/logo.svg"
+            src="/assets/images/logo3.png"
             alt="logo"
             width={128}
             height={38}
