@@ -27,6 +27,7 @@ export default async function Home({ searchParams }: SearchParamProps) {
             <h1 className="h1-bold">Get Ready for the Show of a Lifetime!</h1>
             <p className="p-regular-20 md:p-regular-24">Discover and book tickets for the hottest musical concerts and live events. Never miss out on the music that moves you!</p>
             <Button size="lg" asChild className="button w-full sm:w-fit">
+
               <Link href="#events">
                 Explore Now
               </Link>
@@ -44,7 +45,9 @@ export default async function Home({ searchParams }: SearchParamProps) {
       </section> 
 
       <section id="events" className="wrapper my-8 flex flex-col gap-8 md:gap-12">
-        {/* <h2 className="h2-bold">Trust by <br /> Thousands of Events</h2> */}
+
+        <h2 className="h2-bold">Explore Events</h2>
+
 
         <div className="flex w-full flex-col gap-5 md:flex-row">
           <Search />
