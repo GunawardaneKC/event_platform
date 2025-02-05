@@ -10,37 +10,53 @@ import Event from '../database/models/event.model';
 import {ObjectId} from 'mongodb';
 import User from '../database/models/user.model';
 
+// export const checkoutOrder = async (order: CheckoutOrderParams) => {
+//   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+//   const price = order.isFree ? 0 : Number(order.price) * 100;
+
+//   try {
+//     const session = await stripe.checkout.sessions.create({
+//       line_items: [
+//         {
+//           price_data: {
+//             currency: 'usd',
+//             unit_amount: price,
+//             product_data: {
+//               name: order.eventTitle
+//             }
+//           },
+//           quantity: 1
+//         },
+//       ],
+//       metadata: {
+//         eventId: order.eventId,
+//         buyerId: order.buyerId,
+//       },
+//       mode: 'payment',
+//       success_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/profile`,
+//       cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/`,
+//     });
+
+//     redirect(session.url!)
+//   } catch (error) {
+//     throw error;
+//   }
+// }
+
 export const checkoutOrder = async (order: CheckoutOrderParams) => {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-  const price = order.isFree ? 0 : Number(order.price) * 100;
-
   try {
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            unit_amount: price,
-            product_data: {
-              name: order.eventTitle
-            }
-          },
-          quantity: 1
-        },
-      ],
-      metadata: {
-        eventId: order.eventId,
-        buyerId: order.buyerId,
-      },
-      mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/profile`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/`,
+    await connectToDatabase();
+    
+    const newOrder = await Order.create({
+      ...order,
+      event: order.eventId,
+      buyer: order.buyerId,
     });
 
-    redirect(session.url!)
+    return JSON.parse(JSON.stringify(newOrder));
   } catch (error) {
-    throw error;
+    handleError(error);
   }
 }
 
@@ -117,32 +133,54 @@ export async function getOrdersByEvent({ searchString, eventId }: GetOrdersByEve
 }
 
 // GET ORDERS BY USER
-export async function getOrdersByUser({ userId, limit = 3, page }: GetOrdersByUserParams) {
+// export async function getOrdersByUser({ userId, limit = 3, page }: GetOrdersByUserParams) {
+//   try {
+//     await connectToDatabase()
+
+//     const skipAmount = (Number(page) - 1) * limit
+//     const conditions = { buyer: userId }
+
+//     const orders = await Order.distinct('event._id')
+//       .find(conditions)
+//       .sort({ createdAt: 'desc' })
+//       .skip(skipAmount)
+//       .limit(limit)
+//       .populate({
+//         path: 'event',
+//         model: Event,
+//         populate: {
+//           path: 'organizer',
+//           model: User,
+//           select: '_id firstName lastName',
+//         },
+//       })
+
+//     const ordersCount = await Order.distinct('event._id').countDocuments(conditions)
+
+//     return { data: JSON.parse(JSON.stringify(orders)), totalPages: Math.ceil(ordersCount / limit) }
+//   } catch (error) {
+//     handleError(error)
+//   }
+// }
+
+export async function getOrdersByUser({ userId, limit = 3, page = 1 }: { userId: string, limit?: number, page?: number }) {
   try {
-    await connectToDatabase()
-
-    const skipAmount = (Number(page) - 1) * limit
-    const conditions = { buyer: userId }
-
-    const orders = await Order.distinct('event._id')
-      .find(conditions)
-      .sort({ createdAt: 'desc' })
-      .skip(skipAmount)
+    await connectToDatabase();
+    
+    const orders = await Order.find({ buyerId: userId })
+      .populate('eventId') // Populate the eventId field
       .limit(limit)
-      .populate({
-        path: 'event',
-        model: Event,
-        populate: {
-          path: 'organizer',
-          model: User,
-          select: '_id firstName lastName',
-        },
-      })
+      .skip((page - 1) * limit)
+      .exec();
 
-    const ordersCount = await Order.distinct('event._id').countDocuments(conditions)
+    const totalOrders = await Order.countDocuments({ buyerId: userId });
 
-    return { data: JSON.parse(JSON.stringify(orders)), totalPages: Math.ceil(ordersCount / limit) }
+    return {
+      data: orders,
+      totalPages: Math.ceil(totalOrders / limit),
+    };
   } catch (error) {
-    handleError(error)
+    console.error('Error fetching orders:', error);
+    return null;
   }
 }
